@@ -7,9 +7,7 @@ const app = express();
 
 const STORAGE_ROOT = path.resolve("C:\\files");
 
-// ============================================================
-// MIDDLEWARE
-// ============================================================
+
 
 app.use(express.json());
 
