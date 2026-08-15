@@ -1,133 +1,146 @@
-# ☁️ IMCLOUD
+# ☁️ IMCLOUD — Personal Cloud Vault
 
-> **A sleek, lightweight, self-hosted personal cloud storage & file management vault.**
+<div align="center">
 
-[![Node.js](https://img.shields.io/badge/Node.js-v18+-68a063?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+![IMCLOUD Banner](https://img.shields.io/badge/IMCLOUD-Personal_Cloud_Storage-0b0b0c?style=for-the-badge&logo=icloud&logoColor=white)
+
+**A high-performance, self-hosted personal cloud vault and file management system.**  
+*Host your own drive. Zero subscription fees. 100% data ownership.*
+
+[![Node.js Version](https://img.shields.io/badge/Node.js-v18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
-[![Caddy](https://img.shields.io/badge/Caddy-2.x-22b573?style=flat-square&logo=caddy&logoColor=white)](https://caddyserver.com/)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare_Tunnel-Remote_Access-f38020?style=flat-square&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](#license)
+[![Caddy Server](https://img.shields.io/badge/Caddy-v2.x-22b573?style=flat-square&logo=caddy&logoColor=white)](https://caddyserver.com/)
+[![Cloudflare Tunnel](https://img.shields.io/badge/Cloudflare_Tunnel-Zero_Trust-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
+[Features](#-features) • [Architecture](#-system-architecture) • [Directory Layout](#-directory-layout) • [Quick Start](#-step-by-step-installation) • [API Docs](#-api-documentation) • [Troubleshooting](#-troubleshooting--faq)
 
 ---
 
-## 📖 Table of Contents
+</div>
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Architecture & Tech Stack](#-architecture--tech-stack)
-- [System Architecture Flow](#-system-architecture-flow)
-- [Directory Layout](#-directory-layout)
-- [Prerequisites](#-prerequisites)
-- [Installation & Setup](#-installation--setup)
-- [Running the Services](#-running-the-services)
-- [API Reference](#-api-reference)
-- [Security Features](#-security-features)
-- [Important Operational Notes](#-important-operational-notes)
-- [License](#-license)
+## 📌 Overview
+
+**IMCLOUD** is a self-hosted cloud storage solution that turns your local computer or home server into a private cloud storage vault. It provides a sleek, modern, dark-mode web application for managing, uploading, organizing, and previewing files stored directly on your physical hard drive—accessible both locally on your home network and remotely from anywhere in the world.
 
 ---
 
-## 🌟 Overview
+## ✨ Features
 
-**IMCLOUD** transforms your local PC or home server into a private, high-performance personal cloud vault. It provides an intuitive, modern web interface for managing, uploading, organizing, previewing, and downloading files directly from your physical storage—accessible securely both within your local network and remotely from anywhere across the globe.
+### 🎨 User Interface & Experience
+- **Modern Glassmorphic Dark UI:** Handcrafted CSS with custom tokens, fluid animations, and responsive layouts tailored for mobile, tablet, and desktop.
+- **Zero-Dependency Frontend:** Built entirely with pure Vanilla HTML5, CSS3, and ES6+ JavaScript. Fast load times with zero build steps or npm bundling overhead on the client.
+- **Instant Search & Filter:** Real-time client-side file and folder search with dynamic breadcrumb navigation.
 
----
+### 📁 Storage & File Management
+- **Large File Support:** Seamless multipart file uploads supporting files up to **5 GB** per upload via streaming disk storage.
+- **Drag-and-Drop:** Drag multiple files or folders directly into the browser to trigger instant uploads.
+- **Directory Hierarchy:** Create deeply nested folder structures and delete files or entire directories recursively.
 
-## ✨ Key Features
+### 👁️ Rich In-Browser Previews
+| Media Type | Supported Formats |
+|---|---|
+| **🖼️ Images** | `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg`, `.bmp` |
+| **🎬 Video** | `.mp4`, `.webm`, `.mkv`, `.mov` |
+| **🎵 Audio** | `.mp3`, `.wav`, `.ogg`, `.aac`, `.m4a` |
+| **📄 Documents** | `.pdf` (interactive viewer) |
+| **💻 Code & Text** | `.txt`, `.json`, `.js`, `.css`, `.html`, `.md`, `.py`, `.c`, `.cpp` |
 
-- **🎨 Minimalist, Modern UI**
-  - Dark-mode glassmorphic design crafted with custom CSS variables, smooth cubic-bezier transitions, and crisp typography.
-  - Fully responsive across desktop, tablet, and mobile devices.
-- **⚡ Zero-Framework Frontend**
-  - Built with pure Vanilla HTML5, CSS3, and ES6+ JavaScript—lightweight, snappy, and zero client build steps.
-- **📁 Robust File & Folder Management**
-  - Multi-file drag-and-drop uploads with support for large files up to **5 GB**.
-  - Create nested directories and delete files or folders recursively.
-  - Instant client-side search, filtering, and breadcrumb path navigation.
-- **👁️ Rich File Previews**
-  - In-browser preview modals for images, videos, audio, PDF documents, and code/text files.
-- **🔒 Hardened Security**
-  - Path traversal protection and strict safe-path resolution (`getSafePath`).
-  - Windows reserved device name validation (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
-  - HTTP Basic Authentication powered by Caddy with hashed passwords.
-- **🌐 Secure Remote Access**
-  - Seamless zero-trust remote access via Cloudflare Tunnels (`cloudflared`) without requiring port forwarding or exposing your home IP.
-- **🚀 High Performance Reverse Proxy**
-  - Caddy Web Server delivers automatic compression (`zstd`, `gzip`), HTTP/2, and static asset caching.
-
----
-
-## 🛠️ Architecture & Tech Stack
-
-| Layer | Component | Technology | Description |
-|---|---|---|---|
-| **Frontend** | Web Client UI | HTML5 / Vanilla CSS / ES6+ JS | Single-page personal vault interface (`index.html`) |
-| **Reverse Proxy** | Web Server & Gateway | [Caddy Server](https://caddyserver.com/) | Handles authentication, compression, static files, and reverse proxying |
-| **Backend API** | Upload & Management API | Node.js & [Express](https://expressjs.com/) | REST endpoints for uploading, folder creation, and file deletion |
-| **File Parser** | Multipart Processing | [Multer](https://github.com/expressjs/multer) | Disk storage streaming for large files up to 5 GB |
-| **Tunneling** | Remote Connectivity | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) | Encrypted outbound tunnel for public access |
-| **Storage** | Physical Disk | Local Filesystem (`C:\files`) | Real-time physical file storage on host machine |
+### 🔒 Enterprise-Grade Security
+- **Path Traversal Protection:** Absolute boundary verification (`getSafePath`) prevents unauthorized filesystem access outside the storage root (`C:\files`).
+- **Windows System Reserved Name Shield:** Blocks dangerous OS-reserved filenames and invalid character patterns (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`, `*`, `?`, etc.).
+- **HTTP Basic Authentication:** Secured at the gateway layer with Caddy and password hashing.
+- **Zero-Port-Forwarding Remote Access:** Encrypted tunnel via Cloudflare Tunnel (`cloudflared`) to expose your vault safely without exposing your public IP or opening router ports.
 
 ---
 
-## 📐 System Architecture Flow
+## 🏛️ System Architecture
+
+### Component Diagram
 
 ```mermaid
-flowchart LR
-    User([🌐 User / Browser])
-    Tunnel[☁️ Cloudflare Tunnel]
-    Caddy[🛡️ Caddy Gateway :80\n(Basic Auth + Gzip/Zstd)]
-    Static[📄 Static File Server\nC:\\filemanager\nC:\\files]
-    API[⚙️ Node.js Express API :3000\nupload-server]
-    Storage[(💾 Local Storage\nC:\\files)]
+flowchart TD
+    subgraph Client ["🌐 Client Layer"]
+        Browser["💻 Browser / Mobile Device"]
+    end
 
-    User -->|HTTPS| Tunnel
-    Tunnel -->|HTTP :80| Caddy
-    Caddy -->|/ | Static
-    Caddy -->|/files/*| Storage
-    Caddy -->|/imcloud/*| API
-    API -->|Read / Write / Delete| Storage
+    subgraph RemoteAccess ["☁️ Remote Tunneling"]
+        CF["Cloudflare Tunnel\n(cloudflared)"]
+    end
+
+    subgraph HostGateway ["🛡️ Gateway & Reverse Proxy (:80)"]
+        Caddy["Caddy Web Server\n• Basic Authentication\n• gzip / zstd Compression\n• Static Asset Serving"]
+    end
+
+    subgraph AppServer ["⚙️ Application Layer (:3000)"]
+        Express["Node.js Express Server\n(server.js)\n• /upload (Multer)\n• /folder\n• /delete"]
+    end
+
+    subgraph StorageLayer ["💾 Physical Storage"]
+        WebFiles["C:\\filemanager\n(index.html)"]
+        UserFiles["C:\\files\n(User Data & Media)"]
+    end
+
+    Browser -->|HTTPS| CF
+    Browser -->|LAN HTTP| Caddy
+    CF -->|HTTP :80| Caddy
+    Caddy -->|/ | WebFiles
+    Caddy -->|/files/*| UserFiles
+    Caddy -->|/imcloud/*| Express
+    Express -->|Read / Write / Delete| UserFiles
 ```
+
+### Component & Port Mapping
+
+| Service | Port | Endpoint / Target | Purpose |
+|---|---|---|---|
+| **Caddy Gateway** | `:80` | `http://localhost:80` | Entry point, authentication, static asset server, reverse proxy |
+| **Node.js Express API** | `:3000` | `http://127.0.0.1:3000` | REST API for file upload, folder creation, and deletions |
+| **Cloudflare Tunnel** | *Dynamic* | `https://*.trycloudflare.com` | Secure public outbound tunnel for remote access |
 
 ---
 
 ## 📂 Directory Layout
 
-Recommended system folder organization on Windows:
+To set up IMCLOUD, organize your Windows file system into the following structure:
 
 ```plaintext
 C:\
-├── files/                     <-- Physical root storage for your files & folders
-│   ├── Documents/
-│   │   └── Resume.pdf
-│   ├── Photos/
-│   │   └── Vacation.jpg
-│   └── Videos/
-│       └── Movie.mp4
+├── files\                          <-- [Physical Storage Root] User files and folders
+│   ├── Documents\
+│   │   ├── Contract.pdf
+│   │   └── Notes.txt
+│   ├── Photos\
+│   │   └── Landscape.jpg
+│   └── Videos\
+│       └── Demo.mp4
 │
-├── filemanager/               <-- Frontend web assets
-│   └── index.html
+├── filemanager\                    <-- [Frontend Web Root]
+│   └── index.html                  <-- IMCLOUD single-page web application
 │
-└── server/                    <-- Gateway config & backend API
-    ├── Caddyfile.txt          <-- Caddy configuration
-    └── upload-server/
-        ├── package.json
-        ├── node_modules/
-        └── server.js          <-- Node.js Express server
+└── server\                         <-- [Backend & Server Configuration]
+    ├── Caddyfile.txt               <-- Caddy reverse proxy & auth configuration
+    └── upload-server\              <-- Node.js API server
+        ├── package.json            <-- Project manifest & dependencies
+        ├── node_modules\           <-- Installed Node modules
+        └── server.js               <-- Express REST backend
 ```
 
 ---
 
-## 📋 Prerequisites
+## 📦 Prerequisites
 
-Ensure you have the following installed on your host machine:
+Ensure the following tools are installed on your Windows machine:
 
-1. **Node.js** (v18 or higher): [nodejs.org](https://nodejs.org/)
-2. **Caddy Server**:
+1. **Node.js (v18 or higher):** Download from [nodejs.org](https://nodejs.org/) or install via winget:
+   ```powershell
+   winget install OpenJS.NodeJS.LTS
+   ```
+2. **Caddy Web Server:**
    ```powershell
    winget install Caddyserver.Caddy
    ```
-3. **Cloudflare Tunnel (`cloudflared`)**:
+3. **Cloudflare Tunnel CLI (`cloudflared`):**
    ```powershell
    winget install Cloudflare.Cloudflared
    ```
@@ -141,45 +154,56 @@ cloudflared --version
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 Step-by-Step Installation
 
-### 1. Create System Directories
+### Step 1: Create Directories
+Open **PowerShell as Administrator** and create the required directory structure:
 
-Open PowerShell as Administrator and create the required folders:
 ```powershell
 New-Item -Path "C:\files" -ItemType Directory -Force
 New-Item -Path "C:\filemanager" -ItemType Directory -Force
 New-Item -Path "C:\server\upload-server" -ItemType Directory -Force
 ```
 
-### 2. Deploy Frontend Assets
-Copy `index.html` to `C:\filemanager\index.html`.
+---
 
-### 3. Deploy Backend API
-Copy `server.js` to `C:\server\upload-server\server.js`.
+### Step 2: Deploy Application Files
 
-Navigate to `C:\server\upload-server` and install dependencies:
+1. **Frontend:** Copy `index.html` to `C:\filemanager\index.html`.
+2. **Backend:** Copy `server.js` to `C:\server\upload-server\server.js`.
+3. **Gateway:** Copy `Caddyfile_imcloud.txt` to `C:\server\Caddyfile.txt`.
+
+---
+
+### Step 3: Install Node.js Backend Dependencies
+
+Navigate to the upload server folder and install dependencies:
+
 ```powershell
 cd C:\server\upload-server
 npm init -y
 npm install express multer
 ```
 
-### 4. Configure Authentication & Caddyfile
+---
 
-1. Generate a secure hashed password for your user:
+### Step 4: Configure Authentication in Caddyfile
+
+1. **Generate your password hash:**
    ```powershell
    caddy hash-password
    ```
-   *Enter your desired password when prompted and copy the output hash.*
+   *Enter your desired password when prompted. Copy the resulting bcrypt/argon2 hash code.*
 
-2. Place `Caddyfile.txt` in `C:\server\Caddyfile.txt`:
+2. **Edit `C:\server\Caddyfile.txt`:**
+   Replace `USERNAME` and `YOUR_HASHCODE` with your actual username and generated hash code:
+
    ```caddy
    :80 {
        encode gzip zstd
 
        basic_auth {
-           YOUR_USERNAME YOUR_GENERATED_HASHCODE
+           admin $2a$14$Z1M8Q6bCjK1mO...YOUR_HASH_HERE...
        }
 
        handle /imcloud/* {
@@ -200,118 +224,151 @@ npm install express multer
        }
    }
    ```
-   > ⚠️ **Note:** Replace `YOUR_USERNAME` and `YOUR_GENERATED_HASHCODE` with your actual username and hashed password.
 
 ---
 
 ## 🏃 Running the Services
 
-To bring your personal cloud online, run each service in its own terminal window:
+To bring IMCLOUD online, launch the 3 services in separate PowerShell terminal windows:
 
-### 📟 Terminal 1 — Start Backend Server
+### 1️⃣ Terminal 1 — Start the Backend API Server
 ```powershell
 node C:\server\upload-server\server.js
 ```
-*Runs on `http://127.0.0.1:3000`*
+> Output: `IMCLOUD server running on http://127.0.0.1:3000`
 
-### 📟 Terminal 2 — Start Caddy Reverse Proxy
+### 2️⃣ Terminal 2 — Start the Caddy Reverse Proxy Gateway
 ```powershell
 caddy run --config C:\server\Caddyfile.txt
 ```
-*Accessible locally at `http://localhost`*
+> Web UI is now available locally at: `http://localhost` (or your local LAN IP e.g. `http://192.168.1.x`)
 
-### 📟 Terminal 3 — Start Cloudflare Remote Tunnel
+### 3️⃣ Terminal 3 — Start the Cloudflare Remote Tunnel
 ```powershell
 cloudflared tunnel --url http://localhost:80
 ```
-*Provides a public HTTPS URL (e.g., `https://xxxx.trycloudflare.com`) for secure remote access from any device.*
+> Copy the generated public URL (e.g. `https://random-words.trycloudflare.com`) to access your vault from any mobile device or remote PC worldwide.
 
 ---
 
-## 🔌 API Reference
+## ⚡ Optional: One-Click Startup Script
 
-The backend exposes the following RESTful endpoints behind the `/imcloud` proxy:
+Create a file named `Start-IMCloud.ps1` to launch all 3 processes simultaneously in minimized windows:
+
+```powershell
+# Start-IMCloud.ps1
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "node C:\server\upload-server\server.js" -WindowStyle Minimized
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "caddy run --config C:\server\Caddyfile.txt" -WindowStyle Minimized
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cloudflared tunnel --url http://localhost:80"
+```
+
+---
+
+## 🔌 API Documentation
+
+All API requests through the proxy are prefixed with `/imcloud`.
 
 ### 1. Upload File
-- **Endpoint:** `POST /upload` (Proxied from `/imcloud/upload`)
-- **Content-Type:** `multipart/form-data`
-- **Body Fields:**
-  - `file`: Binary file data (Max 5 GB)
-  - `folderPath`: Relative target folder path (optional, default: `""`)
-- **Response:**
+Uploads a single file to a designated folder.
+
+- **URL:** `POST /imcloud/upload`
+- **Headers:** `Content-Type: multipart/form-data`
+- **Body Parameters:**
+  - `file` *(binary, required)*: The file payload (max 5 GB).
+  - `folderPath` *(string, optional)*: Target destination directory relative to `C:\files`.
+- **Sample Request (cURL):**
+  ```bash
+  curl -X POST http://localhost/imcloud/upload \
+       -F "file=@document.pdf" \
+       -F "folderPath=Documents"
+  ```
+- **Success Response (`200 OK`):**
   ```json
   {
     "success": true,
-    "name": "example.pdf",
-    "size": 1048576,
+    "name": "document.pdf",
+    "size": 245800,
     "path": "Documents"
   }
   ```
 
+---
+
 ### 2. Create Folder
-- **Endpoint:** `POST /folder` (Proxied from `/imcloud/folder`)
-- **Content-Type:** `application/json`
-- **Body:**
+Creates a new directory within the storage root.
+
+- **URL:** `POST /imcloud/folder`
+- **Headers:** `Content-Type: application/json`
+- **Body Parameters:**
   ```json
   {
-    "name": "New Folder",
+    "name": "ProjectAlpha",
     "folderPath": "Documents"
   }
   ```
-- **Response:**
+- **Success Response (`201 Created`):**
   ```json
   {
     "success": true,
-    "name": "New Folder",
-    "path": "Documents\\New Folder"
+    "name": "ProjectAlpha",
+    "path": "Documents\\ProjectAlpha"
   }
   ```
+
+---
 
 ### 3. Delete File or Folder
-- **Endpoint:** `DELETE /delete` (Proxied from `/imcloud/delete`)
-- **Content-Type:** `application/json`
-- **Body:**
+Deletes a file or directory recursively.
+
+- **URL:** `DELETE /imcloud/delete`
+- **Headers:** `Content-Type: application/json`
+- **Body Parameters:**
   ```json
   {
-    "itemPath": "Documents/old_file.pdf"
+    "itemPath": "Documents/ProjectAlpha"
   }
   ```
-- **Response:**
+- **Success Response (`200 OK`):**
   ```json
   {
     "success": true,
-    "type": "file",
-    "path": "Documents/old_file.pdf"
+    "type": "folder",
+    "path": "Documents/ProjectAlpha"
   }
   ```
 
 ---
 
-## 🛡️ Security Features
+## ⚙️ Configuration & Customization
 
-- **Path Traversal Shield:** All requested and target paths are resolved against `STORAGE_ROOT` (`C:\files`). Any access attempting to escape the root boundary throws an immediate `Invalid storage path` exception.
-- **Windows System Reserved Name Checks:** Prevents creation of OS-reserved filenames/folders (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`, etc.) and invalid control characters (`<>:"|?*`).
-- **HTTP Basic Authentication:** All incoming traffic to the web app, static storage, and API routes requires authentication verified by Caddy.
-- **Encrypted Zero-Trust Tunnels:** Cloudflare Tunnel creates a secure outbound TLS connection, removing the need for open inbound firewall ports.
-
----
-
-## ⚠️ Important Operational Notes
-
-> [!IMPORTANT]
-> The host machine running IMCLOUD is your physical storage server.
->
-> | State | Impact |
-> |---|---|
-> | 💻 **Computer / Laptop OFF** | IMCLOUD is **OFFLINE** |
-> | ⚙️ **Node.js stopped** | Uploads & file/folder operations unavailable |
-> | 🛡️ **Caddy stopped** | Web interface & file downloads unavailable |
-> | ☁️ **Tunnel stopped** | Remote internet access unavailable (Local LAN access still works) |
+| Setting | File Location | How to Change |
+|---|---|---|
+| **Max File Size Limit** | `server.js` | Update `limits: { fileSize: 5 * 1024 * 1024 * 1024 }` (default: 5GB). |
+| **Storage Root Path** | `server.js` & `Caddyfile.txt` | Update `STORAGE_ROOT` in `server.js` and `root * C:\files` in `Caddyfile.txt`. |
+| **Backend API Port** | `server.js` & `Caddyfile.txt` | Change `3000` in `app.listen(3000, ...)` and `reverse_proxy 127.0.0.1:3000`. |
+| **Gateway Port** | `Caddyfile.txt` | Change `:80` to `:8080` or desired port. |
 
 ---
 
-## 📄 License
+## ❓ Troubleshooting & FAQ
 
-This project is licensed under the [MIT License](LICENSE).
-#   I m c l o u d  
- 
+### 1. Caddy fails to bind to port 80 (`bind: address already in use`)
+- **Reason:** Another service (such as IIS, Apache, Skype, or Windows World Wide Web Publishing Service) is using port 80.
+- **Solution:** Stop the conflicting service in Windows Services (`services.msc` -> `World Wide Web Publishing Service` -> Stop), or change `:80` in `Caddyfile.txt` to `:8080` and adjust the Cloudflare command to `cloudflared tunnel --url http://localhost:8080`.
+
+### 2. "Invalid storage path" error on upload or folder creation
+- **Reason:** Path traversal attempt or invalid special characters detected.
+- **Solution:** Ensure folder names do not contain characters like `..`, `:`, `/`, `\`, `?`, `*`, `<`, `>`, `|`.
+
+### 3. File upload returns 413 "File is too large"
+- **Reason:** The file exceeds the configured limit (5 GB).
+- **Solution:** Increase the `fileSize` parameter in `server.js` under `multer({ limits: { fileSize: ... } })`.
+
+### 4. What happens when the host computer is turned off?
+- Because IMCLOUD is 100% self-hosted on your hardware, the service is offline when the host machine is turned off or asleep. Configure your PC's power options to prevent sleep mode when hosting 24/7.
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute for personal or commercial use.
