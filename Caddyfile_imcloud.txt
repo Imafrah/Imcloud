@@ -1,0 +1,24 @@
+:80 {
+    encode gzip zstd
+
+    basic_auth {
+        USERNAME YOUR_HASHCODE
+    }
+
+    handle /imcloud/* {
+        uri strip_prefix /imcloud
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle_path /files/* {
+        root * C:\files
+        file_server browse
+        header Cache-Control "public, max-age=86400"
+    }
+
+    handle {
+        root * C:\filemanager
+        try_files {path} /index.html
+        file_server
+    }
+}

@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0c" />
+  <title>IMCLOUD</title>
+  <style>
+    /* ============================================================
+   IMCLOUD — minimal personal vault (Mohammed Afrah Usman)
+   ============================================================ */
+
+    :root {
+      --bg: #0b0b0c;
+      --surface: #121214;
+      --surface-2: #18181b;
+      --border: rgba(255, 255, 255, .08);
+      --border-strong: rgba(255, 255, 255, .18);
+      --text: #ececea;
+      --text-dim: #8a8a90;
+      --text-faint: #57575d;
+      --accent: #9db4d8;
+      --danger: #ff8f8f;
+      --radius: 10px;
+      --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+      --gutter: clamp(16px, 4vw, 40px);
+      --toolbar-h: 60px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    img,
+    video {
+      display: block;
+      max-width: 100%;
+    }
+
+    button {
+      font-family: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    ::selection {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    /* ============================================================
+   APP SHELL
+   ============================================================ */
+    #app {
+      min-height: 100dvh;
+      opacity: 0;
+    }
+
+    #app.reveal {
+      animation: appIn .5s var(--ease) forwards;
+    }
+
+    @keyframes appIn {
+      to {
+        opacity: 1
+      }
+    }
+
+    header.topbar {
+      position: sticky;
+      top: 0;
+      z-index: 400;
+      background: rgba(11, 11, 12, .82);
+      backdrop-filter: blur(12px) saturate(1.1);
+      -webkit-backdrop-filter: blur(12px) saturate(1.1);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px var(--gutter);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      flex: none;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: .3s var(--ease);
+      flex: none;
+    }
+
+    .back-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .back-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .crumbs {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .crumbs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .crumbs button {
+      color: var(--text-dim);
+      white-space: nowrap;
+      transition: color .2s;
+    }
+
+    .crumbs button:hover {
+      color: var(--text);
+    }
+
+    .crumbs .sep {
+      opacity: .35;
+    }
+
+    .crumbs .cur {
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .count {
+      flex: none;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .04em;
+      color: var(--text-faint);
+    }
+
+    /* ---- Content ---- */
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: clamp(24px, 4vw, 48px) var(--gutter) calc(var(--toolbar-h) + 56px);
+    }
+
+    .section-block {
+      margin-bottom: clamp(36px, 6vw, 56px);
+    }
+
+    .section-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-label {
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 14px;
+    }
+
+    /* ---- Folders ---- */
+    .folders {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+      gap: 10px;
+    }
+
+    .folder-wrap {
+      position: relative;
+    }
+
+    .folder {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 46px 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      text-align: left;
+      transition: border-color .3s var(--ease), background .3s var(--ease);
+    }
+
+    .folder::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform .35s var(--ease);
+    }
+
+    .folder-wrap:hover .folder {
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .folder-wrap:hover .folder::before {
+      transform: scaleY(1);
+    }
+
+    .folder svg {
+      width: 17px;
+      height: 17px;
+      stroke: var(--text-dim);
+      flex: none;
+      transition: stroke .3s;
+    }
+
+    .folder-wrap:hover .folder svg {
+      stroke: var(--text);
+    }
+
+    .folder .fname {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .folder-delete {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* ---- Photos masonry ---- */
+    .masonry {
+      columns: 4;
+      column-gap: 10px;
+    }
+
+    @media(max-width:1100px) {
+      .masonry {
+        columns: 3
+      }
+    }
+
+    @media(max-width:720px) {
+      .masonry {
+        columns: 2
+      }
+    }
+
+    .photo-wrap {
+      position: relative;
+      break-inside: avoid;
+      margin-bottom: 10px;
+    }
+
+    .photo {
+      position: relative;
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .photo img {
+      width: 100%;
+      height: auto;
+      opacity: 0;
+      transition: transform .5s var(--ease), opacity .4s, filter .4s;
+    }
+
+    .photo img.loaded {
+      opacity: 1;
+    }
+
+    .photo-wrap:hover .photo img {
+      transform: scale(1.03);
+    }
+
+    .photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0, 0, 0, .55), transparent 40%);
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+
+    .photo-wrap:hover .photo::after {
+      opacity: 1;
+    }
+
+    .photo .pcap {
+      position: absolute;
+      left: 10px;
+      right: 40px;
+      bottom: 9px;
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: .3s var(--ease);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      z-index: 2;
+    }
+
+    .photo-wrap:hover .pcap {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ---- Videos ---- */
+    .videos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+      gap: 14px;
+    }
+
+    .video-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .vtile {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .vthumb {
+      position: relative;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .vthumb video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(.7);
+      transition: filter .4s, transform .5s var(--ease);
+    }
+
+    .video-wrap:hover .vthumb video {
+      filter: brightness(.85);
+      transform: scale(1.02);
+    }
+
+    .video-wrap:hover .vthumb {
+      border-color: var(--border-strong);
+    }
+
+    .play {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      translate: -50% -50%;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .4);
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, .3);
+      backdrop-filter: blur(3px);
+      transition: .3s var(--ease);
+    }
+
+    .video-wrap:hover .play {
+      background: var(--text);
+      border-color: var(--text);
+    }
+
+    .play svg {
+      width: 13px;
+      height: 13px;
+      margin-left: 2px;
+      fill: var(--text);
+      transition: fill .3s;
+    }
+
+    .video-wrap:hover .play svg {
+      fill: var(--bg);
+    }
+
+    .vname {
+      font-size: 13px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 34px;
+      transition: color .3s;
+    }
+
+    .video-wrap:hover .vname {
+      color: var(--text);
+    }
+
+    /* ---- Media delete buttons (photos/videos) ---- */
+    .media-delete {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 5;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(10, 10, 11, .72);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: var(--text-dim);
+      opacity: 0;
+      transform: scale(.9);
+      transition: opacity .2s var(--ease), transform .2s var(--ease), background .2s, color .2s, border-color .2s;
+    }
+
+    .photo-wrap:hover .media-delete,
+    .video-wrap:hover .media-delete,
+    .media-delete:focus-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .media-delete svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+    }
+
+    .media-delete:hover {
+      background: #3a1717;
+      border-color: #8b4040;
+      color: var(--danger);
+    }
+
+    /* vtile delete sits below the video thumb, over the name row */
+    .video-wrap .media-delete {
+      top: 8px;
+    }
+
+    /* ---- Files ---- */
+    .files {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--border);
+    }
+
+    .fcard {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      transition: background .2s var(--ease);
+    }
+
+    .fcard:hover {
+      background: var(--surface);
+    }
+
+    .fcard::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform .35s var(--ease);
+    }
+
+    .fcard:hover::before {
+      transform: scaleY(1);
+    }
+
+    .fcard .file-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+      min-width: 0;
+      padding: 13px 4px 13px 14px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .fcard .ficon {
+      width: 34px;
+      height: 34px;
+      flex: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .02em;
+      color: var(--text-dim);
+    }
+
+    .fcard .fbody {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .fcard .ft {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fcard .fsub {
+      margin-top: 2px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .03em;
+      color: var(--text-faint);
+    }
+
+    /* ---- Generic delete button (folders + files list) ---- */
+    .delete-btn {
+      width: 30px;
+      height: 30px;
+      flex: none;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--text-faint);
+      background: transparent;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+
+    .delete-btn svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+    }
+
+    .delete-btn:hover {
+      background: #3a1717;
+      border-color: #8b4040;
+      color: var(--danger);
+    }
+
+    .fcard .delete-btn {
+      margin-right: 14px;
+    }
+
+    /* ---- Empty / loading / error states ---- */
+    .state {
+      min-height: 45vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .state .inner {
+      max-width: 360px;
+    }
+
+    .state .big {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .state .small {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      margin: 0 auto 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--text);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* entrance reveal for tiles — subtle */
+    .stag {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .stag.in {
+      animation: tileIn .4s var(--ease) forwards;
+    }
+
+    @keyframes tileIn {
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+
+    /* ============================================================
+   LIGHTBOX
+   ============================================================ */
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 8000;
+      display: none;
+      place-items: center;
+      background: rgba(4, 4, 5, .92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    #lightbox.open {
+      display: grid;
+      animation: lbIn .3s var(--ease) forwards;
+    }
+
+    @keyframes lbIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .lb-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: clamp(30px, 6vw, 70px) clamp(14px, 6vw, 90px);
+    }
+
+    .lb-media {
+      max-width: 100%;
+      max-height: 100%;
+      display: grid;
+      place-items: center;
+    }
+
+    .lb-media img,
+    .lb-media video {
+      max-width: 100%;
+      max-height: 82vh;
+      width: auto;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+    }
+
+    .lb-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: clamp(14px, 3vw, 26px) clamp(16px, 4vw, 36px);
+    }
+
+    .lb-caption {
+      font-size: 13px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60vw;
+    }
+
+    .lb-caption b {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .lb-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lb-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      transition: .3s var(--ease);
+      flex: none;
+    }
+
+    .lb-btn:hover {
+      background: var(--text);
+      border-color: var(--text);
+    }
+
+    .lb-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text);
+      fill: none;
+      transition: stroke .3s;
+    }
+
+    .lb-btn:hover svg {
+      stroke: var(--bg);
+    }
+
+    .lb-nav {
+      position: absolute;
+      top: 50%;
+      translate: 0 -50%;
+      z-index: 3;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      transition: .3s var(--ease);
+      background: rgba(0, 0, 0, .2);
+    }
+
+    .lb-nav:hover {
+      background: var(--text);
+      border-color: var(--text);
+    }
+
+    .lb-nav svg {
+      width: 15px;
+      height: 15px;
+      stroke: var(--text);
+      transition: stroke .3s;
+    }
+
+    .lb-nav:hover svg {
+      stroke: var(--bg);
+    }
+
+    .lb-prev {
+      left: clamp(10px, 3vw, 26px);
+    }
+
+    .lb-next {
+      right: clamp(10px, 3vw, 26px);
+    }
+
+    .lb-count {
+      position: absolute;
+      bottom: clamp(14px, 3vw, 26px);
+      left: 50%;
+      translate: -50% 0;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .lb-count b {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    @media(max-width:640px) {
+      .lb-nav {
+        display: none;
+      }
+
+      .lb-caption {
+        max-width: 44vw;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+
+      .stag {
+        opacity: 1;
+        transform: none;
+      }
+
+      .photo img {
+        opacity: 1;
+      }
+
+      #app {
+        opacity: 1;
+      }
+    }
+
+    /* ============================================================
+   FLOATING TOOLBAR (Upload + New Folder)
+   ============================================================ */
+    .toolbar {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(14px, 3vw, 24px);
+      transform: translateX(-50%);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px;
+      background: rgba(18, 18, 20, .78);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+      backdrop-filter: blur(14px) saturate(1.1);
+      -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    }
+
+    .toolbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 16px;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: var(--mono);
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .3s var(--ease), color .3s var(--ease), transform .2s var(--ease);
+    }
+
+    .toolbar-btn svg {
+      width: 13px;
+      height: 13px;
+      flex: none;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .toolbar-btn:active {
+      transform: scale(.96);
+    }
+
+    .toolbar-btn:disabled {
+      opacity: .5;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border-strong);
+      flex: none;
+    }
+
+    @media (max-width: 480px) {
+      .toolbar {
+        left: var(--gutter);
+        right: var(--gutter);
+        transform: none;
+        justify-content: center;
+      }
+
+      .toolbar-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 0 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <span class="brand">IMCLOUD</span>
+        <button class="back-btn" id="backBtn" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+          Back
+        </button>
+        <nav class="crumbs" id="crumbs"></nav>
+        <span class="count" id="fileCount">—</span>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="state">
+        <div class="inner">
+          <div class="spinner"></div>
+          <div class="small">Loading</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================== FLOATING TOOLBAR ===================== -->
+  <div class="toolbar">
+    <input type="file" id="fileInput" style="display:none" />
+
+    <button id="newFolderBtn" class="toolbar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 7a2 2 0 012-2h4.5l1.5 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+        <path d="M12 11v4M10 13h4" />
+      </svg>
+      New Folder
+    </button>
+
+    <span class="toolbar-sep"></span>
+
+    <button id="uploadBtn" class="toolbar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" />
+      </svg>
+      Upload
+    </button>
+  </div>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Media viewer">
+    <div class="lb-top">
+      <div class="lb-caption" id="lbCaption"></div>
+      <div class="lb-actions">
+        <a class="lb-btn" id="lbDownload" download title="Download" aria-label="Download">
+          <svg viewBox="0 0 24 24" stroke-width="1.6">
+            <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" />
+          </svg>
+        </a>
+        <button class="lb-btn" id="lbClose" title="Close" aria-label="Close">
+          <svg viewBox="0 0 24 24" stroke-width="1.6">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+        <path d="M15 6l-6 6 6 6" />
+      </svg>
+    </button>
+    <div class="lb-stage">
+      <div class="lb-media" id="lbMedia"></div>
+    </div>
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+        <path d="M9 6l6 6-6 6" />
+      </svg>
+    </button>
+    <div class="lb-count" id="lbCount"></div>
+  </div>
+
+  <script>
+    "use strict";
+    (function () {
+
+      /* ------------------------------------------------------------------
+         CONFIG / helpers
+         ------------------------------------------------------------------ */
+      const ROOT = "/files/";
+      const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const IMG_EXT = ["jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "svg", "heic", "heif", "tif", "tiff"];
+      const VID_EXT = ["mp4", "webm", "mov", "m4v", "ogv", "mkv", "avi"];
+
+      const $ = (s, el = document) => el.querySelector(s);
+      const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+
+      const DELETE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+
+      function buildURL(pathSegments) {
+        return ROOT + pathSegments.map(encodeURIComponent).join("/");
+      }
+      function extOf(name) {
+        const i = name.lastIndexOf(".");
+        return i < 0 ? "" : name.slice(i + 1).toLowerCase();
+      }
+      function isImg(n) { return IMG_EXT.includes(extOf(n)); }
+      function isVid(n) { return VID_EXT.includes(extOf(n)); }
+      function baseName(n) { const i = n.lastIndexOf("."); return i < 0 ? n : n.slice(0, i); }
+      function fmtSize(bytes) {
+        if (bytes == null || isNaN(bytes)) return "";
+        const u = ["B", "KB", "MB", "GB", "TB"]; let i = 0, b = Number(bytes);
+        while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+        return (b < 10 && i > 0 ? b.toFixed(1) : Math.round(b)) + " " + u[i];
+      }
+      function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+      /* ------------------------------------------------------------------
+         STATE
+         ------------------------------------------------------------------ */
+      let path = [];
+      let galleryImages = [];
+      let lbIndex = 0;
+      let lbMode = "img";
+
+      const main = $("#main");
+      const fileCount = $("#fileCount");
+      const crumbs = $("#crumbs");
+      const backBtn = $("#backBtn");
+
+      /* ------------------------------------------------------------------
+         FETCH LISTING (Caddy file_server browse JSON)
+         ------------------------------------------------------------------ */
+      async function fetchListing(segments) {
+        const url = segments.length ? buildURL(segments) + "/" : ROOT;
+        const res = await fetch(url, { headers: { "Accept": "application/json" }, cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (data.entries || data.items || []);
+        return arr.map(e => ({
+          name: e.name,
+          isDir: !!(e.is_dir || e.isDir || (e.name && e.name.endsWith("/"))),
+          size: e.size,
+          mod: e.mod_time || e.modTime || e.mtime || null
+        })).map(e => ({ ...e, name: e.name.replace(/\/$/, "") }))
+          .filter(e => e.name && e.name !== "." && e.name !== "..");
+      }
+
+      /* ------------------------------------------------------------------
+         RENDER
+         ------------------------------------------------------------------ */
+      function setSlate(entries) {
+        const n = entries.length;
+        fileCount.textContent = n + (n === 1 ? " item" : " items");
+
+        backBtn.style.display = path.length ? "inline-flex" : "none";
+
+        let html = `<button data-i="-1">${path.length ? "Personal Drive" : "<span class='cur'>Personal Drive</span>"}</button>`;
+        path.forEach((seg, i) => {
+          html += `<span class="sep">/</span>`;
+          if (i === path.length - 1) html += `<span class="cur">${esc(seg)}</span>`;
+          else html += `<button data-i="${i}">${esc(seg)}</button>`;
+        });
+        crumbs.innerHTML = html;
+        $$("button", crumbs).forEach(b => b.addEventListener("click", () => {
+          const i = parseInt(b.dataset.i, 10);
+          path = i < 0 ? [] : path.slice(0, i + 1);
+          load();
+        }));
+      }
+
+      function makeSection(label, count, inner) {
+        return `<div class="section-block">
+      <div class="section-label">${label} · ${count}</div>
+      ${inner}
+    </div>`;
+      }
+
+      function render(entries) {
+        setSlate(entries);
+
+        if (!entries.length) {
+          main.innerHTML = `<div class="state"><div class="inner">
+        <div class="big">Nothing here</div>
+        <div class="small">This folder is empty.</div>
+      </div></div>`;
+          return;
+        }
+
+        const folders = entries.filter(e => e.isDir).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        const photos = entries.filter(e => !e.isDir && isImg(e.name)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        const vids = entries.filter(e => !e.isDir && isVid(e.name)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        const files = entries.filter(e => !e.isDir && !isImg(e.name) && !isVid(e.name)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+        galleryImages = photos.map(p => ({ name: p.name, url: buildURL([...path, p.name]) }));
+
+        let out = "";
+
+        if (folders.length) {
+          const glyph = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M3 7a2 2 0 012-2h4.5l1.5 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>`;
+
+          const tiles = folders.map(f => `
+      <div class="folder-wrap stag">
+        <button class="folder" data-folder="${esc(f.name)}" aria-label="Open ${esc(f.name)}">
+          ${glyph}
+          <span class="fname">${esc(f.name)}</span>
+        </button>
+        <button class="delete-btn folder-delete"
+          data-delete-path="${esc([...path, f.name].join("/"))}"
+          data-delete-name="${esc(f.name)}"
+          data-delete-type="folder"
+          title="Delete ${esc(f.name)}"
+          aria-label="Delete ${esc(f.name)}">${DELETE_ICON}</button>
+      </div>`).join("");
+          out += makeSection("Folders", folders.length, `<div class="folders">${tiles}</div>`);
+        }
+
+        if (photos.length) {
+          const items = photos.map((p, i) => {
+            const u = buildURL([...path, p.name]);
+            const itemPath = [...path, p.name].join("/");
+            return `
+      <div class="photo-wrap stag">
+        <button class="photo" data-photo="${i}" aria-label="View ${esc(p.name)}">
+          <img data-src="${u}" alt="${esc(p.name)}" loading="lazy">
+          <span class="pcap">${esc(p.name)}</span>
+        </button>
+        <button class="media-delete"
+          data-delete-path="${esc(itemPath)}"
+          data-delete-name="${esc(p.name)}"
+          data-delete-type="file"
+          title="Delete ${esc(p.name)}"
+          aria-label="Delete ${esc(p.name)}">${DELETE_ICON}</button>
+      </div>`;
+          }).join("");
+          out += makeSection("Photos", photos.length, `<div class="masonry">${items}</div>`);
+        }
+
+        if (vids.length) {
+          const play = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+          const items = vids.map((v) => {
+            const u = buildURL([...path, v.name]);
+            const itemPath = [...path, v.name].join("/");
+            return `
+      <div class="video-wrap stag">
+        <button class="vtile" data-video="${esc(u)}" data-name="${esc(v.name)}" aria-label="Play ${esc(v.name)}">
+          <span class="vthumb">
+            <video muted preload="metadata" playsinline src="${u}#t=0.1"></video>
+            <span class="play">${play}</span>
+          </span>
+          <span class="vname">${esc(baseName(v.name))}</span>
+        </button>
+        <button class="media-delete"
+          data-delete-path="${esc(itemPath)}"
+          data-delete-name="${esc(v.name)}"
+          data-delete-type="file"
+          title="Delete ${esc(v.name)}"
+          aria-label="Delete ${esc(v.name)}">${DELETE_ICON}</button>
+      </div>`;
+          }).join("");
+          out += makeSection("Videos", vids.length, `<div class="videos">${items}</div>`);
+        }
+
+        if (files.length) {
+          const items = files.map(f => {
+            const u = buildURL([...path, f.name]);
+            const ex = extOf(f.name).toUpperCase() || "FILE";
+            return `
+      <div class="fcard stag">
+        <a href="${u}" download aria-label="Download ${esc(f.name)}" class="file-main">
+          <span class="ficon">${esc(ex.slice(0, 4))}</span>
+          <span class="fbody">
+            <span class="ft">${esc(f.name)}</span>
+            <span class="fsub">${esc(ex)} · ${fmtSize(f.size) || "—"}</span>
+          </span>
+        </a>
+        <button class="delete-btn"
+          data-delete-path="${esc([...path, f.name].join("/"))}"
+          data-delete-name="${esc(f.name)}"
+          data-delete-type="file"
+          title="Delete ${esc(f.name)}"
+          aria-label="Delete ${esc(f.name)}">${DELETE_ICON}</button>
+      </div>`;
+          }).join("");
+          out += makeSection("Files", files.length, `<div class="files">${items}</div>`);
+        }
+
+        main.innerHTML = out;
+
+        attachHandlers();
+        lazyImages();
+        staggerReveal();
+      }
+
+      /* ------------------------------------------------------------------
+         INTERACTIONS
+         ------------------------------------------------------------------ */
+      function attachHandlers() {
+        $$(".folder").forEach(b => b.addEventListener("click", () => {
+          path.push(b.dataset.folder);
+          load();
+          window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
+        }));
+        $$(".photo").forEach(b => b.addEventListener("click", () => openLightboxImg(parseInt(b.dataset.photo, 10))));
+        $$(".vtile").forEach(b => b.addEventListener("click", () => openLightboxVid(b.dataset.video, b.dataset.name)));
+        $$(".delete-btn, .media-delete").forEach(btn => {
+          btn.addEventListener("click", async (event) => {
+
+            event.preventDefault();
+            event.stopPropagation();
+            await deleteItem(btn.dataset.deletePath, btn.dataset.deleteName, btn.dataset.deleteType);
+          });
+        });
+      }
+
+      async function deleteItem(itemPath, itemName, itemType) {
+        const message = itemType === "folder"
+          ? `Delete folder "${itemName}" and everything inside it?`
+          : `Delete "${itemName}"?`;
+
+        if (!confirm(message)) return;
+
+        try {
+          const response = await fetch("/imcloud/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ itemPath })
+          });
+
+          const text = await response.text();
+          let result;
+          try {
+            result = text ? JSON.parse(text) : {};
+          } catch {
+            throw new Error(`Server returned ${response.status} instead of JSON`);
+          }
+
+          if (!response.ok) {
+            throw new Error(result.error || `Delete failed (${response.status})`);
+          }
+
+          await load();
+
+        } catch (error) {
+          console.error("Delete error:", error);
+          alert(`Could not delete ${itemName}: ${error.message}`);
+        }
+      }
+
+      function lazyImages() {
+        const imgs = $$(".photo img");
+        const CONCURRENCY = 3;
+        let active = 0;
+        const queue = [];
+        function loadNext() {
+          while (active < CONCURRENCY && queue.length) {
+            const img = queue.shift();
+            if (!img.dataset.src) continue;
+            active++;
+            img.src = img.dataset.src;
+            img.addEventListener("load", () => { img.classList.add("loaded"); active--; loadNext(); }, { once: true });
+            img.addEventListener("error", () => { img.classList.add("loaded"); img.style.opacity = ".15"; active--; loadNext(); }, { once: true });
+          }
+        }
+        if ("IntersectionObserver" in window) {
+          const io = new IntersectionObserver((ents) => {
+            ents.forEach(e => { if (e.isIntersecting) { queue.push(e.target); io.unobserve(e.target); loadNext(); } });
+          }, { rootMargin: "150px" });
+          imgs.forEach(i => io.observe(i));
+        } else { imgs.forEach(i => queue.push(i)); loadNext(); }
+      }
+
+      function staggerReveal() {
+        const tiles = $$(".stag");
+        if (REDUCED) { tiles.forEach(t => t.classList.add("in")); return; }
+        if ("IntersectionObserver" in window) {
+          const io = new IntersectionObserver((ents, obs) => {
+            ents.forEach((e) => {
+              if (e.isIntersecting) {
+                const idx = tiles.indexOf(e.target);
+                e.target.style.animationDelay = Math.min((idx % 12) * 25, 300) + "ms";
+                e.target.classList.add("in");
+                obs.unobserve(e.target);
+              }
+            });
+          }, { rootMargin: "0px 0px -8% 0px" });
+          tiles.forEach(t => io.observe(t));
+        } else tiles.forEach(t => t.classList.add("in"));
+      }
+
+      /* ------------------------------------------------------------------
+         LOAD   Note : After Setup the Server Remove only lineNo: 1365-1366 ("Setup the Server on Your device")
+         ------------------------------------------------------------------ */
+      async function load() {
+        main.innerHTML = `<div class="state"><div class="inner">
+      <div class="spinner"></div><div class="small">Loading</div>
+    </div></div>`;
+        try {
+          const entries = await fetchListing(path);
+          render(entries);
+        } catch (err) {
+          setSlate([]);
+          main.innerHTML = `<div class="state"><div class="inner">
+        <div class="big">Couldn't load this folder</div>
+        <div class="big">Setup the Server on Your device</div>
+        <div class="big">Read Installation Guide</div>
+        <div class="small">${esc(err.message || "Unknown error")}</div>
+      </div></div>`;
+        }
+      }
+
+      backBtn.addEventListener("click", () => {
+        if (path.length) { path.pop(); load(); window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" }); }
+      });
+
+      /** UPLOAD */
+      const uploadBtn = document.getElementById("uploadBtn");
+      const fileInput = document.getElementById("fileInput");
+
+      uploadBtn.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("folderPath", path.join("/"));
+        formData.append("file", file);
+
+        uploadBtn.disabled = true;
+        const originalLabel = uploadBtn.innerHTML;
+        uploadBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg>Uploading…`;
+
+        try {
+          const response = await fetch("/imcloud/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Upload failed");
+          }
+
+          fileInput.value = "";
+          load();
+
+        } catch (error) {
+          alert("Upload failed: " + error.message);
+        }
+
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalLabel;
+      });
+
+      /** CREATE NEW FOLDER */
+      const newFolderBtn = document.getElementById("newFolderBtn");
+
+      newFolderBtn.addEventListener("click", async () => {
+        const name = prompt("Enter folder name:");
+        if (!name || !name.trim()) return;
+
+        try {
+          const response = await fetch("/imcloud/folder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: name.trim(),
+              folderPath: path.join("/")
+            })
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Failed to create folder");
+          }
+
+          load();
+
+        } catch (error) {
+          alert("Could not create folder: " + error.message);
+        }
+      });
+
+      /* ------------------------------------------------------------------
+         LIGHTBOX
+         ------------------------------------------------------------------ */
+      const lb = $("#lightbox");
+      const lbMedia = $("#lbMedia");
+      const lbCaption = $("#lbCaption");
+      const lbCount = $("#lbCount");
+      const lbDownload = $("#lbDownload");
+
+      function openLightboxImg(index) {
+        lbMode = "img"; lbIndex = index;
+        lb.classList.add("open");
+        $("#lbPrev").style.display = galleryImages.length > 1 ? "" : "none";
+        $("#lbNext").style.display = galleryImages.length > 1 ? "" : "none";
+        document.body.style.overflow = "hidden";
+        showImg();
+      }
+      function showImg() {
+        const item = galleryImages[lbIndex];
+        if (!item) return;
+        lbMedia.innerHTML = `<img src="${item.url}" alt="${esc(item.name)}">`;
+        lbCaption.innerHTML = `<b>${esc(item.name)}</b>`;
+        lbCount.innerHTML = `<b>${lbIndex + 1}</b> / ${galleryImages.length}`;
+        lbDownload.href = item.url;
+        lbDownload.setAttribute("download", item.name);
+      }
+      function navLightbox(dir) {
+        if (lbMode !== "img" || galleryImages.length < 2) return;
+        lbIndex = (lbIndex + dir + galleryImages.length) % galleryImages.length;
+        showImg();
+      }
+      function openLightboxVid(url, name) {
+        lbMode = "vid";
+        lb.classList.add("open");
+        $("#lbPrev").style.display = "none";
+        $("#lbNext").style.display = "none";
+        document.body.style.overflow = "hidden";
+        lbMedia.innerHTML = `<video src="${url}" controls autoplay playsinline preload="auto"></video>`;
+        const vid = $("video", lbMedia);
+        if (vid) { vid.play().catch(() => { }); }
+        lbCaption.innerHTML = `<b>${esc(name)}</b>`;
+        lbCount.innerHTML = "Video";
+        lbDownload.href = url;
+        lbDownload.setAttribute("download", name);
+      }
+      function closeLightbox() {
+        lb.classList.remove("open");
+        document.body.style.overflow = "";
+        lbMedia.innerHTML = "";
+      }
+
+      $("#lbClose").addEventListener("click", closeLightbox);
+      $("#lbPrev").addEventListener("click", () => navLightbox(-1));
+      $("#lbNext").addEventListener("click", () => navLightbox(1));
+      lb.addEventListener("click", (e) => { if (e.target === lb || e.target.classList.contains("lb-stage")) closeLightbox(); });
+
+      document.addEventListener("keydown", (e) => {
+        if (!lb.classList.contains("open")) return;
+        if (e.key === "Escape") closeLightbox();
+        else if (e.key === "ArrowLeft") navLightbox(-1);
+        else if (e.key === "ArrowRight") navLightbox(1);
+      });
+
+      let touchX = null, touchY = null;
+      lb.addEventListener("touchstart", (e) => { const t = e.changedTouches[0]; touchX = t.clientX; touchY = t.clientY; }, { passive: true });
+      lb.addEventListener("touchend", (e) => {
+        if (touchX === null) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - touchX, dy = t.clientY - touchY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { navLightbox(dx < 0 ? 1 : -1); }
+        else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) { closeLightbox(); }
+        touchX = touchY = null;
+      }, { passive: true });
+
+      /* ------------------------------------------------------------------
+         BOOT
+         ------------------------------------------------------------------ */
+      const app = $("#app");
+      load();
+      if (REDUCED) {
+        app.style.opacity = 1;
+      } else {
+        requestAnimationFrame(() => app.classList.add("reveal"));
+      }
+
+    })();
+  </script>
+</body>
+
+</html>

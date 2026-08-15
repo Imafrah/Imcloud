@@ -1,0 +1,103 @@
+
+//Installation Guide
+On C:Drive
+
+
+Create Folder:
+files --> This where all personal files are stored
+filemanager 
+server
+
+
+Reaname the file : Caddyfile_imcloud.txt ---> Caddyfile.txt
+
+
+Inside filemanager folder --> {  Add index.js file }
+
+Inside server folder --> {
+Add Canndyfile.txt file,
+
+Create Folder upload-server
+Inside upload-server --> (
+
+Install packages
+COMMANDS:
+	
+npm init -y
+npm install express multer
+
+Add server.js file
+	)
+
+}
+
+
+Folder Structure:	
+C:\
+├── files
+├── filemanager
+└── server
+
+
+C:\filemanager
+└── index.html
+
+
+C:\server
+├── Caddyfile.txt
+└── upload-server
+    └── server.js
+
+
+
+
+COMMANDS:
+
+winget install Caddyserver.Caddy
+winget install Cloudfare.Cloudflared
+
+-->Check whether it's installed:
+caddy version
+cloudflared --version
+
+caddy hash-password
+To get gibberish hashcode for your Drive
+
+
+Now Make Changes on file,
+Add your Username and Hash Code on Canddyfile.txt file.
+to provide the security for your Drive
+
+
+
+
+To start the Server on Windows Powershell:
+
+Terminal-1
+node C:\server\upload-server\server.js
+Terminal-2
+caddy run --config C:\server\Caddyfile.txt
+Terminal-3
+cloudflared tunnel --url http://localhost:80   
+
+
+Storage location: All uploaded files are physically stored on the computer running IMCLOUD.
+C:\files
+├── Documents
+│   ├── file1.pdf
+│   └── Notes.pdf
+│
+├── Photos
+│   ├── photo1.jpg
+│   └── photo2.jpg
+│
+└── Videos
+    └── Video1.mp4
+
+
+Important Notes:
+The computer running IMCLOUD is the actual storage server.
+Laptop OFF     → IMCLOUD OFFLINE
+Node stopped   → API unavailable
+Caddy stopped  → Website unavailable
+Tunnel stopped → Remote access unavailable
